@@ -1,0 +1,274 @@
+# K3s Infrastructure Configuration
+# Copy this file to config.yaml and customize for your environment
+
+cluster:
+  name: k3s-cluster
+  version: v1.28.5+k3s1
+
+  # Server (control plane) configuration
+  server:
+    count: 1
+    # Additional SANs for API server certificate
+    tls_san:
+      - "k3s.example.com"
+      - "192.168.1.100"
+
+    # K3s server options
+    options:
+      - "--disable=traefik"  # Disable if using custom ingress
+      - "--disable=servicelb"
+      - "--write-kubeconfig-mode=644"
+
+  # Agent (worker) configuration
+  agents:
+    count: 3
+    labels:
+      node-role: worker
+      workload-type: general
+
+    # Specific GPU nodes
+    gpu_nodes:
+      count: 2
+      labels:
+        gpu: "true"
+        gpu-type: nvidia
+        gpu-memory: "24GB"
+
+# Networking configuration
+networking:
+  # CNI plugin: cilium, flannel, or calico
+  cni: cilium
+
+  # Cluster networking
+  serviceCIDR: 10.43.0.0/16
+  clusterCIDR: 10.42.0.0/16
+  clusterDNS: 10.43.0.10
+
+  # Ingress controller
+  ingress:
+    enabled: true
+    controller: nginx  # or traefik
+    class: nginx
+    replicas: 2
+
+    # External IPs for LoadBalancer
+    loadBalancerIPs:
+      - "192.168.1.200"
+      - "192.168.1.201"
+
+# Storage configuration
+storage:
+  # Default storage class
+  default_storage_class: local-path
+
+  # Longhorn distributed storage
+  longhorn:
+    enabled: true
+    replicas: 3
+    data_path: /var/lib/longhorn
+
+  # NFS storage (optional)
+  nfs:
+    enabled: false
+    server: 192.168.1.50
+    path: /mnt/k8s-storage
+
+  # Local path provisioner
+  local_path:
+    enabled: true
+    path: /opt/local-path-provisioner
+
+# Monitoring and observability
+monitoring:
+  # Prometheus for metrics
+  prometheus:
+    enabled: true
+    retention: 15d
+    storage: 50Gi
+    scrape_interval: 30s
+
+  # Grafana for visualization
+  grafana:
+    enabled: true
+    admin_user: admin
+    admin_password: changeme  # Change this!
+    storage: 10Gi
+
+  # Loki for logs
+  loki:
+    enabled: true
+    retention: 7d
+    storage: 50Gi
+
+  # Alert Manager
+  alertmanager:
+    enabled: true
+    storage: 10Gi
+    # Configure alert routing
+    receivers:
+      - name: slack
+        slack_api_url: https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# GPU support
+gpu:
+  enabled: false
+
+  # NVIDIA GPU operator
+  nvidia:
+    enabled: false
+    driver_version: "535.129.03"
+    cuda_version: "12.2"
+
+    # Time slicing (share GPUs)
+    time_slicing:
+      enabled: false
+      replicas: 4  # Virtual GPUs per physical GPU
+
+    # MIG (Multi-Instance GPU)
+    mig:
+      enabled: false
+      strategy: mixed
+
+# ML/AI workload configuration
+ml_workloads:
+  # Model serving
+  model_serving:
+    enabled: true
+    framework: fastapi  # or triton, torchserve
+    replicas: 2
+    gpu_required: false
+
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+
+  # Training jobs
+  training:
+    enabled: true
+    default_gpu_count: 1
+
+    resources:
+      requests:
+        cpu: "2000m"
+        memory: "8Gi"
+      limits:
+        cpu: "4000m"
+        memory: "16Gi"
+
+# Security configuration
+security:
+  # Pod security standards
+  pod_security:
+    enabled: true
+    default_policy: restricted
+
+  # Network policies
+  network_policies:
+    enabled: true
+    default_deny: true
+
+  # RBAC
+  rbac:
+    enabled: true
+
+  # Image security
+  image_scanning:
+    enabled: false
+    tool: trivy
+
+# Backup configuration
+backup:
+  # Etcd backup
+  etcd:
+    enabled: true
+    schedule: "0 */6 * * *"  # Every 6 hours
+    retention: 7  # days
+    destination: s3
+
+    s3:
+      bucket: k3s-backups
+      region: us-east-1
+      endpoint: s3.amazonaws.com
+
+  # Velero for cluster backup
+  velero:
+    enabled: false
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention: 30  # days
+
+# GitOps configuration
+gitops:
+  enabled: false
+  tool: argocd  # or flux
+
+  argocd:
+    version: v2.9.0
+    repo_url: https://github.com/your-org/k3s-manifests
+    target_revision: main
+
+  flux:
+    version: v2.1.0
+    repo_url: https://github.com/your-org/k3s-manifests
+    branch: main
+
+# High availability
+ha:
+  enabled: false
+  control_plane_nodes: 3
+  embedded_etcd: true
+
+  # External etcd (alternative to embedded)
+  external_etcd:
+    enabled: false
+    endpoints:
+      - "https://etcd1.example.com:2379"
+      - "https://etcd2.example.com:2379"
+      - "https://etcd3.example.com:2379"
+
+# Node configuration
+nodes:
+  # Kernel parameters
+  sysctl:
+    - "net.ipv4.ip_forward=1"
+    - "net.bridge.bridge-nf-call-iptables=1"
+    - "vm.max_map_count=262144"
+
+  # Labels and taints
+  default_labels:
+    environment: production
+    managed-by: k3s-template
+
+  # Node taints for specialized workloads
+  taints:
+    gpu_nodes:
+      - key: nvidia.com/gpu
+        effect: NoSchedule
+        value: "true"
+
+# Development/Testing overrides
+dev:
+  enabled: false
+  single_node: true
+  monitoring:
+    prometheus:
+      retention: 7d
+      storage: 10Gi
+    grafana:
+      storage: 5Gi
+
+# Production overrides
+production:
+  enabled: false
+  ha:
+    enabled: true
+  backup:
+    etcd:
+      schedule: "0 */2 * * *"  # Every 2 hours
+  monitoring:
+    prometheus:
+      retention: 30d
+      storage: 100Gi

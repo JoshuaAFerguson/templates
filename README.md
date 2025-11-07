@@ -11,6 +11,7 @@ This repository contains production-ready templates for:
 
 - 📝 **Project README**: Comprehensive README.md template for any project
 - 📚 **Ansible Documentation**: Complete documentation for Ansible runbooks and playbooks
+- ☸️ **K3s Infrastructure**: K3s cluster configuration templates and deployment guides
 - 📖 **Setup Guides**: Step-by-step guides for GitHub profile, portfolio, and more
 
 ## Templates
@@ -81,7 +82,60 @@ vim RUNBOOKS_README.md
 vim PLAYBOOK_GUIDE.md
 ```
 
-### 3. Setup Guides
+### 3. K3s Infrastructure Template
+
+**Location**: [`k3s-template/`](k3s-template/)
+
+Reusable K3s cluster configuration template:
+
+#### config.example.yaml
+Complete cluster configuration including:
+- Cluster setup and versioning
+- Server and agent node configuration
+- Networking (CNI, ingress, service mesh)
+- Storage (Longhorn, NFS, local-path)
+- Monitoring (Prometheus, Grafana, Loki)
+- GPU support (NVIDIA drivers, device plugin)
+- ML/AI workload configurations
+- Security (network policies, RBAC, pod security)
+- Backup configuration
+- GitOps setup (ArgoCD/Flux)
+- High availability options
+
+#### README.md
+Comprehensive guide with:
+- Quick start instructions
+- Directory structure
+- Configuration examples
+- Extraction guide from existing K3s deployments
+- Usage examples
+- Customization for different use cases
+- Best practices
+
+**Quick Start:**
+```bash
+# Copy to your K3s project
+cp k3s-template/config.example.yaml /path/to/k3s-project/config.yaml
+
+# Customize configuration
+cd /path/to/k3s-project
+vim config.yaml
+
+# Deploy cluster (using your deployment scripts)
+./scripts/deploy-cluster.sh
+```
+
+**What to customize:**
+- Cluster name and version
+- Node counts and labels
+- Network CIDRs and CNI choice
+- Storage backends
+- Monitoring retention and storage sizes
+- GPU configuration (if applicable)
+- Security policies
+- Backup destinations
+
+### 4. Setup Guides
 
 **Location**: [`guides/`](guides/)
 
@@ -110,7 +164,7 @@ These templates complement other repositories:
 
 - **[JoshuaAFerguson/JoshuaAFerguson](https://github.com/JoshuaAFerguson/JoshuaAFerguson)** - GitHub profile README
 - **[JoshuaAFerguson.github.io](https://github.com/JoshuaAFerguson/JoshuaAFerguson.github.io)** - Portfolio website
-- **[k3s-infrastructure-template](https://github.com/JoshuaAFerguson/k3s-infrastructure-template)** - K3s cluster templates
+- **[ansible-runbooks](https://github.com/JoshuaAFerguson/ansible-runbooks)** - Ansible automation for infrastructure
 
 ## Repository Structure
 
@@ -122,6 +176,9 @@ templates/
 ├── ansible-docs/
 │   ├── RUNBOOKS_README.md       # Complete runbook documentation
 │   └── PLAYBOOK_GUIDE.md        # Quick reference guide
+├── k3s-template/
+│   ├── README.md                # K3s deployment guide
+│   └── config.example.yaml      # K3s cluster configuration
 └── guides/
     └── SETUP_GUIDE.md           # GitHub setup guide
 ```
@@ -165,6 +222,20 @@ cp ~/templates/ansible-docs/* docs/
 
 # Customize for your playbooks
 vim docs/RUNBOOKS_README.md
+```
+
+### For K3s Clusters
+
+```bash
+# Copy K3s configuration template
+cd ~/k3s-project
+cp ~/templates/k3s-template/config.example.yaml config.yaml
+
+# Customize for your environment
+vim config.yaml
+
+# Reference the README for deployment
+cat ~/templates/k3s-template/README.md
 ```
 
 ## Customization Tips
