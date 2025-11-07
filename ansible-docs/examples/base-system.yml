@@ -1,0 +1,25 @@
+---
+# Base System Configuration Playbook
+# Prepares all nodes with common system configuration
+
+- name: Configure base system on all nodes
+  hosts: all
+  become: yes
+  tags:
+    - base
+    - system
+
+  pre_tasks:
+    - name: Update package cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+  roles:
+    - base_system
+
+  post_tasks:
+    - name: Verify system configuration
+      ansible.builtin.debug:
+        msg: "Base system configuration complete on {{ inventory_hostname }}"

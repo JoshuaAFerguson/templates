@@ -1,0 +1,166 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Example K3s Kustomization file
+# Organize your Kubernetes manifests into tiers based on dependencies
+
+metadata:
+  name: k3s-cluster
+
+# ============================================================================
+# Tier 1: Core Infrastructure (deploy first)
+# ============================================================================
+resources:
+  # Namespaces
+  - cluster/namespaces.yaml
+
+  # Networking
+  - networking/metallb.yaml
+  - networking/ingress-nginx.yaml
+
+  # Storage
+  - storage/local-path-config.yaml
+  # - storage/longhorn.yaml              # Optional: distributed storage
+  # - storage/nfs-provisioner.yaml       # Optional: NFS integration
+
+# ============================================================================
+# Tier 2: Observability Stack
+# ============================================================================
+  # Monitoring
+  - monitoring/prometheus-stack.yaml
+  - monitoring/grafana-dashboards.yaml
+
+  # Logging
+  - monitoring/loki-stack.yaml
+  - monitoring/promtail.yaml
+
+# ============================================================================
+# Tier 3: Data Layer
+# ============================================================================
+  # Databases
+  - data/postgres.yaml
+  - data/redis.yaml
+  # - data/mongodb.yaml                  # Optional
+
+  # Object Storage
+  - data/minio.yaml
+
+# ============================================================================
+# Tier 4: Security & Authentication
+# ============================================================================
+  # Auth providers
+  - auth/authentik.yaml
+  # - auth/keycloak.yaml                 # Alternative
+
+  # Security tools
+  - security/cert-manager.yaml
+  - security/network-policies.yaml
+  # - security/vault.yaml                # Optional: secrets management
+
+# ============================================================================
+# Tier 5: Applications
+# ============================================================================
+  # Application deployments
+  - apps/api-server.yaml
+  - apps/web-frontend.yaml
+
+  # Management tools
+  - tools/portainer.yaml
+  - tools/kubernetes-dashboard.yaml
+
+# ============================================================================
+# Tier 6: ML/AI Workloads (optional, high memory)
+# ============================================================================
+  # ML infrastructure
+  # - ai/mlflow.yaml                     # Experiment tracking
+  # - ai/jupyter.yaml                    # Notebooks
+  # - ai/model-server.yaml               # Model serving
+
+# ============================================================================
+# Configuration Management
+# ============================================================================
+
+# ConfigMap generator for environment-specific configs
+configMapGenerator:
+  - name: cluster-config
+    literals:
+      - CLUSTER_NAME=k3s-prod
+      - ENVIRONMENT=production
+      - REGION=us-west-2
+
+# Secret generator (for non-sensitive demo values only)
+# Use sealed-secrets or SOPS for production
+secretGenerator:
+  - name: demo-secrets
+    literals:
+      - demo-key=demo-value
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  environment: production
+  cluster: k3s
+
+# Common annotations
+commonAnnotations:
+  managed-by: infrastructure-team
+  documentation: https://github.com/yourorg/k3s-cluster
+
+# Namespace for all resources (if not specified in manifests)
+# namespace: default
+
+# Image modifications (for testing or air-gapped environments)
+# images:
+#   - name: nginx
+#     newName: harbor.local/library/nginx
+#     newTag: 1.21.0
+
+# Resource name prefix/suffix
+# namePrefix: prod-
+# nameSuffix: -v1
+
+# Replicas (for testing with fewer replicas)
+# replicas:
+#   - name: api-server
+#     count: 3
+
+# ============================================================================
+# Patches and Overlays
+# ============================================================================
+
+# Strategic merge patches
+# patches:
+#   - path: patches/resource-limits.yaml
+#   - path: patches/node-affinity.yaml
+
+# JSON 6902 patches for precise modifications
+# patchesJson6902:
+#   - target:
+#       group: apps
+#       version: v1
+#       kind: Deployment
+#       name: api-server
+#     patch: |-
+#       - op: replace
+#         path: /spec/replicas
+#         value: 5
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# Deployment order:
+#   1. kubectl apply -k . (applies all tiers)
+#   2. Or deploy tier by tier for better control
+#
+# Check deployment:
+#   kubectl get all -A
+#   kubectl get pods -A --watch
+#
+# Resource usage:
+#   kubectl top nodes
+#   kubectl top pods -A | sort -k 4 -hr
+#
+# Troubleshooting:
+#   kubectl describe pod <pod-name> -n <namespace>
+#   kubectl logs <pod-name> -n <namespace>

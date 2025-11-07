@@ -37,36 +37,45 @@ kubectl get pods -A
 ## Directory Structure
 
 ```
-k3s-infrastructure-template/
-├── cluster/
-│   ├── k3s-config.yaml           # K3s server configuration
-│   ├── k3s-agent-config.yaml     # K3s agent configuration
-│   └── manifests/                # Auto-deployed manifests
-├── kubernetes/
-│   ├── namespaces/               # Namespace definitions
-│   ├── storage/                  # PV, PVC, StorageClass
-│   ├── networking/               # Ingress, NetworkPolicy
-│   ├── monitoring/               # Prometheus, Grafana
-│   ├── gpu/                      # GPU operator, device plugin
-│   └── ml-workloads/             # ML job templates
-├── scripts/
-│   ├── deploy-cluster.sh         # Cluster deployment
-│   ├── add-node.sh               # Add worker nodes
-│   ├── backup.sh                 # Backup etcd
-│   └── upgrade.sh                # Upgrade cluster
-├── helm/
-│   ├── values/                   # Helm values files
-│   └── charts/                   # Custom charts
-├── gitops/
-│   ├── argocd/                   # ArgoCD configurations
-│   └── flux/                     # Flux configurations
-├── docs/
-│   ├── architecture.md           # Architecture overview
-│   ├── installation.md           # Installation guide
-│   ├── gpu-setup.md              # GPU configuration
-│   └── troubleshooting.md        # Common issues
-├── config.example.yaml           # Example configuration
-└── README.md                     # This file
+k3s-template/
+├── README.md                     # This file
+├── config.example.yaml           # Complete cluster configuration
+├── .env.example                  # Environment variables template
+├── scripts/                      # Deployment automation
+│   ├── deploy-base.sh           # Deploy base infrastructure
+│   └── generate-secrets.sh      # Generate Kubernetes secrets
+└── examples/                     # Example manifests and configs
+    ├── kustomization.yaml       # Example Kustomize configuration
+    └── namespaces.yaml          # Standard namespace definitions
+```
+
+### Using This Template
+
+When starting a new K3s project:
+
+```bash
+# 1. Copy template to your project
+cp -r k3s-template/ ~/my-k3s-project/
+
+# 2. Customize configuration
+cd ~/my-k3s-project
+cp config.example.yaml config.yaml
+cp .env.example .env
+vim config.yaml .env
+
+# 3. Create your directory structure
+mkdir -p {cluster,networking,storage,monitoring,data,apps}
+
+# 4. Copy example manifests as starting points
+cp examples/namespaces.yaml cluster/
+cp examples/kustomization.yaml .
+
+# 5. Make scripts executable
+chmod +x scripts/*.sh
+
+# 6. Deploy
+./scripts/generate-secrets.sh
+./scripts/deploy-base.sh
 ```
 
 ## Configuration

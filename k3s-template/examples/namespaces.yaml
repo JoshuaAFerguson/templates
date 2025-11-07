@@ -1,0 +1,112 @@
+---
+# Standard namespaces for K3s cluster organization
+# Modify based on your application architecture
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data
+  labels:
+    name: data
+    tier: infrastructure
+  annotations:
+    description: "Data layer services (databases, caches, object storage)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+    tier: observability
+  annotations:
+    description: "Monitoring and observability stack (Prometheus, Grafana, Loki)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: networking
+  labels:
+    name: networking
+    tier: infrastructure
+  annotations:
+    description: "Networking services (ingress, load balancers, service mesh)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: storage
+  labels:
+    name: storage
+    tier: infrastructure
+  annotations:
+    description: "Storage provisioners and volume management"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security
+  labels:
+    name: security
+    tier: infrastructure
+  annotations:
+    description: "Security services (cert-manager, vault, policies)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: auth
+  labels:
+    name: auth
+    tier: security
+  annotations:
+    description: "Authentication and authorization services (SSO, IdP)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+  labels:
+    name: apps
+    tier: application
+  annotations:
+    description: "Application workloads"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai
+  labels:
+    name: ai
+    tier: application
+  annotations:
+    description: "AI/ML workloads (model serving, training, inference)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tools
+  labels:
+    name: tools
+    tier: management
+  annotations:
+    description: "Management and operational tools (Portainer, dashboards)"
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    name: dev
+    tier: development
+  annotations:
+    description: "Development tools (Jupyter, Gitea, IDEs)"
